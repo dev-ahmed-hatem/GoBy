@@ -9,16 +9,37 @@ class ClientReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = '__all__'
+        exclude = ['password']
 
     def get_created_at(self, obj):
         return f"{obj.created_at.astimezone(settings.CAIRO_TZ):%Y-%m-%d - %H:%M:%S}"
 
 
 class ClientWriteSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
     class Meta:
         model = Client
         fields = '__all__'
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        password2 = validated_data.pop('password2', None)
+        if password != password2:
+            raise serializers.ValidationError([{"password2": "password doesn't match"}])
+
+        client = Client(**validated_data)
+        if password:
+            client.set_password(password)
+
+        client.save()
+        return client
+
+    def update(self, instance, validated_data):
+        validated_data.pop('password', None)
+        print(validated_data)
+        return super(ClientWriteSerializer, self).update(instance, validated_data)
 
 
 class ClientMobileSerializer(serializers.ModelSerializer):

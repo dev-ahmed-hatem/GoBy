@@ -42,7 +42,7 @@ class ClientViewSet(ModelViewSet):
                 Q(phone2__icontains=search))
         return queryset
 
-    @action(detail=True, methods=['PATCH'])
+    # @action(detail=True, methods=['PATCH'])
     def change_id(self, request, pk=None):
         client = self.get_object()
         new_id = request.data.get('new_id')
@@ -63,7 +63,7 @@ class ClientViewSet(ModelViewSet):
             client.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['POST'])
+    # @action(detail=True, methods=['POST'])
     def requested_photo(self, request, pk=None):
         client = self.get_object()
         action_ = request.data.get('action')
@@ -76,21 +76,21 @@ class ClientViewSet(ModelViewSet):
 
 class ClientLogin(APIView):
     def post(self, request):
-        id = request.data.get('id')
+        identifier = request.data.get('identifier')
         password = request.data.get('password')
 
         if not id or not password:
-            return Response({"error": "ID and Password must be provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Email/Phone and Password must be provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            client = Client.objects.get(id=id)
+            client = Client.objects.get(Q(email=identifier) | Q(phone=identifier))
             if client.check_password(password):
-                return Response(ClientMobileSerializer(client, context={"request": request}).data,
+                return Response(ClientReadSerializer(client, context={"request": request}).data,
                                 status=status.HTTP_200_OK)
-            return Response({"error": "incorrect password"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Incorrect password"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Client.DoesNotExist:
-            return Response({"error": "ID is not found!"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Client not found with given email or phone"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GetClientData(APIView):

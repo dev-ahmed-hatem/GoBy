@@ -21,6 +21,8 @@ class Client(models.Model):
     is_blocked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    password = models.CharField(max_length=255, blank=True, null=True, default="unset")
+
     # For personalization / analytics
     # preferred_language = models.CharField(max_length=10, blank=True, null=True)
     # app_notifications_enabled = models.BooleanField(default=True)
