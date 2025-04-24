@@ -2,6 +2,7 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
+from restaurants.models import Restaurant
 
 
 class Client(models.Model):
@@ -14,11 +15,10 @@ class Client(models.Model):
     email = models.EmailField(unique=True, blank=True, null=True)
     phone = models.CharField(max_length=15, unique=True)
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, blank=True, null=True)
-    birth_date = models.DateField(blank=True, null=True)
 
     profile_image = models.ImageField(upload_to='client_profiles/', blank=True, null=True)
 
-    is_blocked = models.BooleanField(default=False)
+    favourites = models.ManyToManyField(Restaurant, related_name='favourites', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     password = models.CharField(max_length=255, blank=True, null=True, default="unset")
@@ -49,7 +49,6 @@ class Client(models.Model):
 
 def get_today():
     return datetime.now(settings.CAIRO_TZ).today()
-
 
 # class New(models.Model):
 #     title = models.CharField(max_length=100, blank=True, null=True)

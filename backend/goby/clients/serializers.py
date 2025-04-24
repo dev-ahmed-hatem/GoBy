@@ -17,7 +17,7 @@ class ClientReadSerializer(serializers.ModelSerializer):
 
 class ClientWriteSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = Client
@@ -25,9 +25,9 @@ class ClientWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        password2 = validated_data.pop('password2', None)
-        if password != password2:
-            raise serializers.ValidationError([{"password2": "password doesn't match"}])
+        confirm_password = validated_data.pop('confirm_password', None)
+        if password != confirm_password:
+            raise serializers.ValidationError([{"confirm_password": "password doesn't match"}])
 
         client = Client(**validated_data)
         if password:
