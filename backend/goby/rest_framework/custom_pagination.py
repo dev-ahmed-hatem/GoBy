@@ -13,12 +13,18 @@ class CustomPagination(PageNumberPagination):
         return super().paginate_queryset(queryset, request, view)
 
     def get_paginated_response(self, data):
-        total_pages = ceil(self.page.paginator.count / self.page_size)
+        count = self.page.paginator.count
+        total_pages = ceil(count / self.page_size)
+        message = "Data retrieved successfully" if count > 0 else "No results found"
+
         return Response({
-            'total_pages': total_pages,
-            'current_page': self.page.number,
-            'count': self.page.paginator.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data,
+            "meta": {
+                'total_pages': total_pages,
+                'current_page': self.page.number,
+                'count': self.page.paginator.count,
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+            },
+            'data': data,
+            "message": message,
         })

@@ -11,7 +11,8 @@ class Category(models.Model):
 
 class Restaurant(models.Model):
     name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='images/restaurants/', null=True)
+    image = models.ImageField(upload_to='images/restaurants/images', null=True)
+    cover = models.ImageField(upload_to='images/restaurants/covers', null=True)
     description = models.TextField()
     total_orders = models.IntegerField(default=0)
 
@@ -34,4 +35,3 @@ class SliderItem(models.Model):
 
     def __str__(self):
         return self.title or f"Slider #{self.pk}"
-
