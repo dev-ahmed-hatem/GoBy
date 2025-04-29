@@ -15,6 +15,7 @@ class Restaurant(models.Model):
     cover = models.ImageField(upload_to='images/restaurants/covers', null=True)
     description = models.TextField()
     total_orders = models.IntegerField(default=0)
+    rating = models.FloatField(default=0)
 
     def __str__(self):
         return self.name
@@ -35,3 +36,22 @@ class SliderItem(models.Model):
 
     def __str__(self):
         return self.title or f"Slider #{self.pk}"
+
+
+class MenuCategory(models.Model):
+    name = models.CharField(max_length=100)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='menu_categories')
+
+    def __str__(self):
+        return f"{self.name} ({self.restaurant.name})"
+
+
+class MenuItem(models.Model):
+    category = models.ForeignKey(MenuCategory, on_delete=models.CASCADE, related_name='items')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+    image = models.ImageField(upload_to='images/menu_items/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.price} EGP"

@@ -1,8 +1,10 @@
 from django.db.models import Q
 
 from rest_framework.viewsets import ModelViewSet
-from .models import Restaurant, Category, SliderItem
-from .serializers import RestaurantSerializer, CategorySerializer, SliderItemSerializer
+from .models import Restaurant, Category, SliderItem, MenuItem, MenuCategory
+from .serializers import (RestaurantSerializer, CategorySerializer, SliderItemSerializer,
+                          MenuItemWriteSerializer, MenuItemReadSerializer, MenuCategoryWriteSerializer,
+                          MenuCategoryReadSerializer)
 
 
 class RestaurantViewSet(ModelViewSet):
@@ -25,3 +27,21 @@ class CategoryViewSet(ModelViewSet):
 class SliderItemViewSet(ModelViewSet):
     queryset = SliderItem.objects.filter(is_active=True).order_by("order")
     serializer_class = SliderItemSerializer
+
+
+class MenuCategoryViewSet(ModelViewSet):
+    queryset = MenuCategory.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return MenuCategoryWriteSerializer
+        return MenuCategoryReadSerializer
+
+
+class MenuItemViewSet(ModelViewSet):
+    queryset = MenuItem.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return MenuItemWriteSerializer
+        return MenuItemReadSerializer
