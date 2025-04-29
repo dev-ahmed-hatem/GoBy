@@ -30,11 +30,14 @@ class SliderItemSerializer(serializers.ModelSerializer):
 
 class MenuCategoryReadSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='menu-category-detail')
-    restaurant = RestaurantSerializer(read_only=True)
+    restaurant = serializers.SerializerMethodField()
 
     class Meta:
         model = MenuCategory
         fields = '__all__'
+
+    def get_restaurant(self, obj: MenuCategory):
+        return {"name": obj.restaurant.name, "id": obj.restaurant.id}
 
 
 class MenuCategoryWriteSerializer(serializers.ModelSerializer):

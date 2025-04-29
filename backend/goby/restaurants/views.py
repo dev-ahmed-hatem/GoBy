@@ -37,6 +37,13 @@ class MenuCategoryViewSet(ModelViewSet):
             return MenuCategoryWriteSerializer
         return MenuCategoryReadSerializer
 
+    def get_queryset(self):
+        restaurant = self.request.query_params.get('restaurant')
+        if restaurant:
+            return self.queryset.filter(restaurant__id=restaurant)
+
+        return self.queryset
+
 
 class MenuItemViewSet(ModelViewSet):
     queryset = MenuItem.objects.all()
@@ -45,3 +52,10 @@ class MenuItemViewSet(ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return MenuItemWriteSerializer
         return MenuItemReadSerializer
+
+    def get_queryset(self):
+        category = self.request.query_params.get('category')
+        if category:
+            return self.queryset.filter(category__id=category)
+
+        return self.queryset
