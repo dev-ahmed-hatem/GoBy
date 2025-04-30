@@ -1,5 +1,5 @@
 from django.db.models import Q
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 from rest_framework.viewsets import ModelViewSet
 from .models import Restaurant, Category, SliderItem, MenuItem, MenuCategory
@@ -8,17 +8,19 @@ from .serializers import (RestaurantSerializer, CategorySerializer, SliderItemSe
                           MenuCategoryReadSerializer)
 
 
-class RestaurantViewSet(ModelViewSet):
-    queryset = Restaurant.objects.all()
-    serializer_class = RestaurantSerializer
-
-    @extend_schema(
+@extend_schema_view(
+    list=extend_schema(
         parameters=[
             OpenApiParameter(name='name', type=str, description='Filter by name or description'),
             OpenApiParameter(name='recently', type=bool, description='Sort by newest'),
             OpenApiParameter(name='best_sellers', type=bool, description='Sort by most ordered'),
         ]
     )
+)
+class RestaurantViewSet(ModelViewSet):
+    queryset = Restaurant.objects.all()
+    serializer_class = RestaurantSerializer
+
     def get_queryset(self):
         queryset = self.queryset
         name = self.request.query_params.get('name')
