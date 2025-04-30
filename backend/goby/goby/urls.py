@@ -6,6 +6,8 @@ from rest_framework_simplejwt import views as jwt_views
 from .auth_views import CustomAsyncTokenObtainPairView, CustomAsyncTokenRefreshView
 from users.views import get_authenticated_user
 
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('api/gym-data/', include('gym_data.urls')),
@@ -20,7 +22,9 @@ urlpatterns = [
     path('token/', CustomAsyncTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', CustomAsyncTokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', jwt_views.TokenVerifyView.as_view(), name='token_verify'),
-    path('auth/', include('authentication.urls'))
+    path('auth/', include('authentication.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 if settings.DEBUG:

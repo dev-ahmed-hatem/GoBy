@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'django_celery_results',
+    'drf_spectacular',
 
 ]
 
@@ -131,10 +132,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated',
-        # 'users.custom_model_permissions.CustomDjangoModelPermissions'
-    ]
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # simple jwt settings

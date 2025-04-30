@@ -14,7 +14,7 @@ class CustomPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
         count = self.page.paginator.count
-        total_pages = ceil(count / self.page_size)
+        total_pages = ceil(count / self.get_page_size(self.request))
         message = "Data retrieved successfully" if count > 0 else "No results found"
 
         return Response({
