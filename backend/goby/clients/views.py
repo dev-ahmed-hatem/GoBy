@@ -1,8 +1,11 @@
-from rest_framework import status
+from authentication.client_perms import IsClientAuthenticated
+from authentication.client_auth import ClientJWTAuthentication
+from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework_simplejwt.tokens import AccessToken
 from django.db.models import Q, F
 
 from .serializers import *
@@ -85,8 +88,9 @@ class ClientLogin(APIView):
         try:
             client = Client.objects.get(Q(email=identifier) | Q(phone=identifier))
             if client.check_password(password):
-                return Response(ClientReadSerializer(client, context={"request": request}).data,
-                                status=status.HTTP_200_OK)
+                token = AccessToken()
+                token["client_id"] = client.id
+                return Response({"access": str(token)}, status=status.HTTP_200_OK)
             return Response({"error": "Incorrect password"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Client.DoesNotExist:
@@ -94,14 +98,13 @@ class ClientLogin(APIView):
 
 
 class GetClientData(APIView):
+    authentication_classes = [ClientJWTAuthentication]
+    permission_classes = [IsClientAuthenticated]
+
     def post(self, request):
-        id = request.data.get('id')
-        try:
-            client = Client.objects.get(id=id)
-            return Response(ClientMobileSerializer(client, context={"request": request}).data,
-                            status=status.HTTP_200_OK)
-        except Client.DoesNotExist:
-            return Response({"error": "ID is not found!"}, status=status.HTTP_404_NOT_FOUND)
+        client = request.user
+        return Response(ClientReadSerializer(client, context={"request": request}).data,
+                        status=status.HTTP_200_OK)
 
 
 class ChangeClientPassword(APIView):
