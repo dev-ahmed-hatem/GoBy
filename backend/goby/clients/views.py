@@ -82,20 +82,40 @@ class ClientLogin(APIView):
         identifier = request.data.get('identifier')
         password = request.data.get('password')
 
-        if not id or not password:
-            return Response({"error": "Email/Phone and Password must be provided"}, status=status.HTTP_400_BAD_REQUEST)
+        if not identifier or not password:
+            return Response({
+                "message": "Identifier and password are required.",
+                "data": [],
+                "meta": {}
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             client = Client.objects.get(Q(email=identifier) | Q(phone=identifier))
-            if client.check_password(password):
-                token = AccessToken()
-                token["client_id"] = client.id
-                return Response({"access": str(token)}, status=status.HTTP_200_OK)
-            return Response({"error": "Incorrect password"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not check_password(password, client.password):
+                return Response({
+                    "message": "Incorrect password.",
+                    "data": [],
+                    "meta": {}
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            token = AccessToken.for_user(client)
+            token['client_id'] = str(client.id)
+
+            return Response({
+                "message": "Login successful.",
+                "data": {
+                    "access": str(token)
+                },
+                "meta": {}
+            }, status=status.HTTP_200_OK)
 
         except Client.DoesNotExist:
-            return Response({"error": "Client not found with given email or phone"}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response({
+                "message": "Client not found.",
+                "data": [],
+                "meta": {}
+            }, status=status.HTTP_404_NOT_FOUND)
 
 class GetClientData(APIView):
     authentication_classes = [ClientJWTAuthentication]
