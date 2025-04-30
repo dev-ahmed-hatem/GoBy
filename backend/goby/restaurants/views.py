@@ -47,7 +47,6 @@ class CategoryViewSet(ModelViewSet):
 class SliderItemViewSet(ModelViewSet):
     queryset = SliderItem.objects.filter(is_active=True).order_by("order")
     serializer_class = SliderItemSerializer
-    pagination_class = None
 
 
 class MenuCategoryViewSet(ModelViewSet):
