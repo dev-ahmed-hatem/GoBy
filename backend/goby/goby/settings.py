@@ -46,7 +46,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'goby.middleware.GlobalTimezoneMiddleware',
+    'goby.middlewares.timezone_middleware.GlobalTimezoneMiddleware',
+    'goby.middlewares.lang_middleware.LangMiddleware',
+    'goby.middlewares.helper_message_middleware.HelperMessageMiddleware'
 ]
 
 ROOT_URLCONF = 'goby.urls'

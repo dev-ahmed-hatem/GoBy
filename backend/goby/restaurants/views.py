@@ -1,25 +1,57 @@
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
+import rest_framework.custom_pagination
 from rest_framework.viewsets import ModelViewSet
-from .models import Restaurant, Category, SliderItem, MenuItem, MenuCategory
-from .serializers import (RestaurantSerializer, CategorySerializer, SliderItemSerializer,
+from .models import Restaurant, SliderItem, MenuItem, MenuCategory
+from .serializers import (RestaurantReadSerializer, RestaurantWriteSerializer, SliderItemReadSerializer,
+                          SliderItemWriteSerializer,
                           MenuItemWriteSerializer, MenuItemReadSerializer, MenuCategoryWriteSerializer,
                           MenuCategoryReadSerializer)
 
 
 @extend_schema_view(
     list=extend_schema(
+        summary="List all restaurants",
+        description="Retrieve a list of restaurants with optional filters.",
         parameters=[
             OpenApiParameter(name='name', type=str, description='Filter by name or description'),
-            OpenApiParameter(name='recently', type=bool, description='Sort by newest'),
-            OpenApiParameter(name='best_sellers', type=bool, description='Sort by most ordered'),
-        ]
+            OpenApiParameter(name='recently', type=bool, description='Sort by newest first'),
+            OpenApiParameter(name='best_sellers', type=bool, description='Sort by highest total_orders'),
+        ],
+        responses={200: RestaurantReadSerializer(many=True)}
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve a specific restaurant",
+        responses={200: RestaurantReadSerializer}
+    ),
+    create=extend_schema(
+        summary="Create a new restaurant",
+        request=RestaurantWriteSerializer,
+        responses={201: RestaurantReadSerializer}
+    ),
+    update=extend_schema(
+        summary="Update an existing restaurant",
+        request=RestaurantWriteSerializer,
+        responses={200: RestaurantReadSerializer}
+    ),
+    partial_update=extend_schema(
+        summary="Partially update a restaurant",
+        request=RestaurantWriteSerializer,
+        responses={200: RestaurantReadSerializer}
+    ),
+    destroy=extend_schema(
+        summary="Delete a restaurant",
+        responses={204: None}
     )
 )
 class RestaurantViewSet(ModelViewSet):
     queryset = Restaurant.objects.all()
-    serializer_class = RestaurantSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return RestaurantWriteSerializer
+        return RestaurantReadSerializer
 
     def get_queryset(self):
         queryset = self.queryset
@@ -39,18 +71,28 @@ class RestaurantViewSet(ModelViewSet):
         return queryset
 
 
-class CategoryViewSet(ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
 class SliderItemViewSet(ModelViewSet):
-    queryset = SliderItem.objects.filter(is_active=True).order_by("order")
-    serializer_class = SliderItemSerializer
+    queryset = SliderItem.objects.order_by("order")
+    pagination_class = rest_framework.custom_pagination.NoPagination
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return SliderItemWriteSerializer
+        return SliderItemReadSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        active = self.request.query_params.get('active')
+
+        if active is not None and active.lower() == 'true':
+            queryset = queryset.filter(is_active=True)
+
+        return queryset
 
 
 class MenuCategoryViewSet(ModelViewSet):
     queryset = MenuCategory.objects.all()
+    pagination_class = rest_framework.custom_pagination.NoPagination
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
