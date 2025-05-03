@@ -71,26 +71,29 @@ class MenuCategoryWriteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MenuItemReadSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='menu-item-detail')
-    category = serializers.SerializerMethodField()
-    restaurant = serializers.SerializerMethodField()
+class MenuItemBaseSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
 
-    class Meta:
-        model = MenuItem
-        fields = ["id", "url", "name", "description", "category", "restaurant", "image", "price"]
+    def get_name(self, obj):
+        return get_translated_field(self.context.get("request"), obj.name_ar, obj.name_en)
 
-    def get_name(self, obj: MenuItem):
-        return get_translated_field(self.context["request"], obj.name_ar, obj.name_en)
-
-    def get_description(self, obj: MenuItem):
-        return get_translated_field(self.context["request"], obj.description_ar, obj.description_en)
+    def get_description(self, obj):
+        return get_translated_field(self.context.get("request"), obj.description_ar, obj.description_en)
 
     def get_category(self, obj: MenuItem) -> dict:
         category = MenuCategoryReadSerializer(obj.category, context=self.context).data
         return {"id": category["id"], "name": category["name"]}
+
+
+class MenuItemReadSerializer(MenuItemBaseSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='menu-item-detail')
+    restaurant = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MenuItem
+        fields = ["id", "url", "name", "description", "category", "restaurant", "image", "price"]
 
     def get_restaurant(self, obj: MenuItem):
         restaurant = RestaurantReadSerializer(obj.restaurant, context=self.context).data
@@ -101,3 +104,9 @@ class MenuItemWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuItem
         fields = '__all__'
+
+
+class MenuItemInlineSerializer(MenuItemBaseSerializer):
+    class Meta:
+        model = MenuItem
+        fields = ["id", "name", "description", "category", "image", "price"]

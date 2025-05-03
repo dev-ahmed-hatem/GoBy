@@ -2,10 +2,12 @@ from django.db.models import Q
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 import rest_framework.custom_pagination
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 from .models import Restaurant, SliderItem, MenuItem, MenuCategory
 from .serializers import (RestaurantReadSerializer, RestaurantWriteSerializer, SliderItemReadSerializer,
-                          SliderItemWriteSerializer,
+                          SliderItemWriteSerializer, MenuItemInlineSerializer,
                           MenuItemWriteSerializer, MenuItemReadSerializer, MenuCategoryWriteSerializer,
                           MenuCategoryReadSerializer)
 
@@ -69,6 +71,17 @@ class RestaurantViewSet(ModelViewSet):
             queryset = queryset.filter(Q(name__icontains=name) | Q(description__icontains=name))
 
         return queryset
+
+    @action(methods=['GET'], detail=True)
+    def detailed(self, request, pk=None):
+        restaurant = self.get_object()
+        serialized = self.get_serializer(restaurant)
+        menu_items = MenuItem.objects.filter(restaurant=restaurant)
+        serialized_menu_items = MenuItemInlineSerializer(menu_items, many=True, context={"request": request}).data
+
+        response = {**serialized.data,
+                    "menu-items": serialized_menu_items}
+        return Response(response, )
 
 
 class SliderItemViewSet(ModelViewSet):
