@@ -112,13 +112,6 @@ class MenuCategoryViewSet(ModelViewSet):
             return MenuCategoryWriteSerializer
         return MenuCategoryReadSerializer
 
-    def get_queryset(self):
-        restaurant = self.request.query_params.get('restaurant')
-        if restaurant:
-            return self.queryset.filter(restaurant__id=restaurant)
-
-        return self.queryset
-
 
 class MenuItemViewSet(ModelViewSet):
     queryset = MenuItem.objects.all()
