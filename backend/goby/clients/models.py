@@ -15,7 +15,7 @@ class Client(models.Model):
     email = models.EmailField(unique=True, blank=True, null=True)
     phone = models.CharField(max_length=15, unique=True)
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, blank=True, null=True)
-    # address = models.CharField(max_length=100, blank=True, null=True)
+    address = models.CharField(max_length=100, blank=True, null=True)
 
     profile_image = models.ImageField(upload_to='client_profiles/', blank=True, null=True)
 

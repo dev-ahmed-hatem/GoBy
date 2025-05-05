@@ -8,7 +8,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('restaurants', '0005_order_orderitem'),
     ]
 
     operations = [
