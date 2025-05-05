@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Restaurant, SliderItem, MenuCategory, MenuItem, Order
+from .models import Restaurant, SliderItem, MenuCategory, MenuItem, Order, OrderItem
 from goby.utils import get_translated_field
+from clients.models import Client
 
 
 class RestaurantReadSerializer(serializers.ModelSerializer):
@@ -137,10 +138,37 @@ class OrderReadSerializer(serializers.ModelSerializer):
         return obj.total_price()
 
 
+class OrderItemWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = '__all__'
+
+
 class OrderWriteSerializer(serializers.ModelSerializer):
+    items = OrderItemWriteSerializer(many=True)
+
     class Meta:
         model = Order
         fields = '__all__'
 
+    def validate_items(self, obj):
+        if len(obj) == 0:
+            raise serializers.ValidationError({"items": "order cannot be empty."})
+
     def create(self, validated_data):
-        pass
+        client_id = validated_data.get("client")
+        try:
+            client = Client.objects.get(id=client_id)
+        except Client.DoesNotExist:
+            raise serializers.ValidationError({"client": "client does not exist."})
+
+        address = validated_data.pop("address")
+        if not address or address.strip() == "":
+            address = client.address
+
+        if not address or address.strip() == "":
+            raise serializers.ValidationError({"address": "no address provided and client has no address."})
+
+        items = self.initial_data.get("items", [])
+        if not items:
+            raise Exception()

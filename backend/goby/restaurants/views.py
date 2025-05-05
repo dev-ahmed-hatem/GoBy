@@ -6,11 +6,11 @@ from goby.utils import get_translated_field
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
-from .models import Restaurant, SliderItem, MenuItem, MenuCategory
+from .models import Restaurant, SliderItem, MenuItem, MenuCategory, Order
 from .serializers import (RestaurantReadSerializer, RestaurantWriteSerializer, SliderItemReadSerializer,
                           SliderItemWriteSerializer, MenuItemInlineSerializer,
                           MenuItemWriteSerializer, MenuItemReadSerializer, MenuCategoryWriteSerializer,
-                          MenuCategoryReadSerializer)
+                          MenuCategoryReadSerializer, OrderWriteSerializer, OrderReadSerializer)
 
 
 @extend_schema_view(
@@ -135,3 +135,12 @@ class MenuItemViewSet(ModelViewSet):
             return self.queryset.filter(category__id=category)
 
         return self.queryset
+
+
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return OrderWriteSerializer
+        return OrderReadSerializer

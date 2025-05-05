@@ -85,10 +85,9 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     menu_item = models.ForeignKey('MenuItem', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
 
     def get_total(self):
-        return self.price * self.quantity
+        return self.menu_item.price * self.quantity
 
     def __str__(self):
         return f"{self.quantity}x {self.menu_item.name_ar} for Order #{self.order_id}"
