@@ -56,3 +56,39 @@ class MenuItem(models.Model):
 
     def __str__(self):
         return f"{self.name_ar} - {self.price} EGP"
+
+
+class Order(models.Model):
+    restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE, related_name='orders')
+    created_at = models.DateTimeField(auto_now_add=True)
+    client = models.ForeignKey('clients.Client', on_delete=models.CASCADE, related_name='orders')
+    address = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('preparing', 'Preparing'),
+        ('delivering', 'Delivering'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ], default='pending')
+
+    def __str__(self):
+        return f"Order #{self.pk} - {self.restaurant.name_ar}"
+
+    def total_price(self):
+        return sum(item.get_total() for item in self.items.all())
+
+    def total_amount(self):
+        return sum(item.quantity for item in self.items.all())
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    menu_item = models.ForeignKey('MenuItem', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def get_total(self):
+        return self.price * self.quantity
+
+    def __str__(self):
+        return f"{self.quantity}x {self.menu_item.name_ar} for Order #{self.order_id}"

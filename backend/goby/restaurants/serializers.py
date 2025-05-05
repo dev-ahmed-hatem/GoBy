@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Restaurant, SliderItem, MenuCategory, MenuItem
+from .models import Restaurant, SliderItem, MenuCategory, MenuItem, Order
 from goby.utils import get_translated_field
 
 
@@ -109,4 +109,38 @@ class MenuItemWriteSerializer(serializers.ModelSerializer):
 class MenuItemInlineSerializer(MenuItemBaseSerializer):
     class Meta:
         model = MenuItem
-        fields = ["id", "name", "description", "category", "image", "price"]
+        fields = ["id", "name", "description", "image", "price"]
+
+
+class OrderReadSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='order-detail')
+    client_name = serializers.SerializerMethodField()
+    restaurant_name = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ['id', 'url', 'client_name', 'restaurant_name', 'total_amount', 'total_price', 'status', 'created_at',
+                  'address']
+
+    def get_client_name(self, obj: Order):
+        return obj.client.name
+
+    def get_restaurant(self, obj: Order):
+        return get_translated_field(self.context["request"], obj.restaurant.name_ar, obj.restaurant.name_en)
+
+    def get_total_mount(self, obj: Order):
+        return obj.total_amount()
+
+    def get_total_price(self, obj: Order):
+        return obj.total_price()
+
+
+class OrderWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def create(self, validated_data):
+        pass

@@ -2,6 +2,7 @@ from django.db.models import Q
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 import rest_framework.custom_pagination
+from goby.utils import get_translated_field
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -76,11 +77,18 @@ class RestaurantViewSet(ModelViewSet):
     def detailed(self, request, pk=None):
         restaurant = self.get_object()
         serialized = self.get_serializer(restaurant)
-        menu_items = MenuItem.objects.filter(restaurant=restaurant)
-        serialized_menu_items = MenuItemInlineSerializer(menu_items, many=True, context={"request": request}).data
+
+        categories = []
+        for category in restaurant.categories.all():
+            items = restaurant.items.filter(category=category)
+            categories.append({
+                "id": category.id,
+                "name": get_translated_field(request, category.name_ar, category.name_en),
+                "items": MenuItemInlineSerializer(items, many=True, context={"request": request}).data
+            })
 
         response = {**serialized.data,
-                    "menu-items": serialized_menu_items}
+                    "categories": categories}
         return Response(response, )
 
 
