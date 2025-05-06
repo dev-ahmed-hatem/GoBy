@@ -29,26 +29,20 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         if password != confirm_password:
             raise serializers.ValidationError([{"confirm_password": "password doesn't match"}])
 
+        favourites = validated_data.pop('favourites', None)
         client = Client(**validated_data)
         if password:
             client.set_password(password)
 
         client.save()
+
+        client.favourites.set(favourites)
         return client
 
     def update(self, instance, validated_data):
         validated_data.pop('password', None)
         print(validated_data)
         return super(ClientWriteSerializer, self).update(instance, validated_data)
-
-
-class ClientMobileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Client
-        fields = [
-            "custom_pk", "id", "name", "national_id", "gander", "birth_date", "age", "phone", "phone2", "email",
-            "address", "photo", "requested_photo", "created_at", "is_blocked", "weight", "height"
-        ]
 
 
 class ClientPasswordSerializer(serializers.ModelSerializer):

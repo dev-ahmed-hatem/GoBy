@@ -11,6 +11,12 @@ class MenuCategory(models.Model):
 
 
 class Restaurant(models.Model):
+    MERCHANT_CHOICES = (
+        ("restaurant", "Restaurant"),
+        ("hand-made", "Hand-Made"),
+        ("grocery", "Grocery"),
+    )
+
     name_ar = models.CharField(max_length=100)
     name_en = models.CharField(max_length=100, blank=True, null=True)
     image = models.ImageField(upload_to='images/restaurants/images', null=True)
@@ -20,6 +26,7 @@ class Restaurant(models.Model):
     total_orders = models.IntegerField(default=0)
     rating = models.FloatField(default=0)
     categories = models.ManyToManyField(MenuCategory, related_name='restaurants', blank=True)
+    merchant_type = models.CharField(max_length=100, default='restaurant', choices=MERCHANT_CHOICES)
 
     def __str__(self):
         return self.name_ar

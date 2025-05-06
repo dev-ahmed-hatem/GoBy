@@ -61,6 +61,10 @@ class RestaurantViewSet(ModelViewSet):
         name = self.request.query_params.get('name')
         recently = self.request.query_params.get('recently')
         best_sellers = self.request.query_params.get('best_sellers')
+        merchant_type = self.request.query_params.get('merchant-type')
+
+        if merchant_type is not None:
+            queryset = queryset.filter(merchant_type=merchant_type)
 
         if recently and recently.lower() == 'true':
             queryset = queryset.order_by('-id')

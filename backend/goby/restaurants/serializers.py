@@ -11,10 +11,12 @@ class RestaurantReadSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField(read_only=True)
     description = serializers.SerializerMethodField(read_only=True)
     categories = serializers.SerializerMethodField(read_only=True)
+    merchant_type = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Restaurant
-        fields = ["id", "url", "name", "image", "cover", "description", "total_orders", "rating", "categories"]
+        fields = ["id", "url", "name", "image", "cover", "description", "total_orders", "rating", "categories",
+                  "merchant_type"]
 
     def get_name(self, obj: Restaurant):
         return get_translated_field(self.context["request"], obj.name_ar, obj.name_en)
@@ -25,6 +27,12 @@ class RestaurantReadSerializer(serializers.ModelSerializer):
     def get_categories(self, obj: Restaurant):
         categories = MenuCategoryReadSerializer(obj.categories, many=True, context=self.context).data
         return [{"id": category["id"], "name": category["name"]} for category in categories]
+
+    def get_merchant_type(self, obj: Restaurant):
+        types = {"grocery": "بقالة", "hand-made": "انتاج منزلي", "restaurant": "مطعم"}
+        if self.context["request"].lang == "en":
+            return obj.merchant_type
+        return types[obj.merchant_type]
 
 
 class RestaurantWriteSerializer(serializers.ModelSerializer):
