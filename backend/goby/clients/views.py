@@ -86,7 +86,6 @@ class ClientLogin(APIView):
             return Response({
                 "message": "Identifier and password are required.",
                 "data": [],
-                "meta": {}
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -96,7 +95,6 @@ class ClientLogin(APIView):
                 return Response({
                     "message": "Incorrect password.",
                     "data": [],
-                    "meta": {}
                 }, status=status.HTTP_401_UNAUTHORIZED)
 
             token = AccessToken.for_user(client)
@@ -107,14 +105,12 @@ class ClientLogin(APIView):
                 "data": {
                     "access": str(token)
                 },
-                "meta": {}
             }, status=status.HTTP_200_OK)
 
         except Client.DoesNotExist:
             return Response({
                 "message": "Client not found.",
                 "data": [],
-                "meta": {}
             }, status=status.HTTP_404_NOT_FOUND)
 
 class GetClientData(APIView):

@@ -2,15 +2,17 @@ from django.db.models import Q
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 import rest_framework.custom_pagination
+from authentication.client_auth import ClientJWTAuthentication
 from goby.utils import get_translated_field
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
-from .models import Restaurant, SliderItem, MenuItem, MenuCategory, Order
+from .models import Restaurant, SliderItem, MenuItem, MenuCategory, Order, OrderItem
 from .serializers import (RestaurantReadSerializer, RestaurantWriteSerializer, SliderItemReadSerializer,
                           SliderItemWriteSerializer, MenuItemInlineSerializer,
                           MenuItemWriteSerializer, MenuItemReadSerializer, MenuCategoryWriteSerializer,
-                          MenuCategoryReadSerializer, OrderWriteSerializer, OrderReadSerializer)
+                          MenuCategoryReadSerializer, OrderWriteSerializer, OrderReadSerializer,
+                          OrderItemWriteSerializer, OrderItemReadSerializer)
 
 
 @extend_schema_view(
@@ -143,8 +145,27 @@ class MenuItemViewSet(ModelViewSet):
 
 class OrderViewSet(ModelViewSet):
     queryset = Order.objects.all()
+    authentication_classes = [ClientJWTAuthentication]
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return OrderWriteSerializer
         return OrderReadSerializer
+
+    def get_queryset(self):
+        client = self.request.user
+        return self.queryset.filter(client=client).order_by('-id')
+
+
+class OrderItemViewSet(ModelViewSet):
+    queryset = OrderItem.objects.all()
+    authentication_classes = [ClientJWTAuthentication]
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return OrderItemWriteSerializer
+        return OrderItemReadSerializer
+
+    def get_queryset(self):
+        client = self.request.user
+        return self.queryset.filter(order__client=client).order_by('-id')
