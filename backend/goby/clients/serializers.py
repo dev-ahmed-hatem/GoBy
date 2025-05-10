@@ -21,22 +21,19 @@ class ClientWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = '__all__'
+        fields = ['name', 'email', 'password', 'confirm_password', 'phone', 'gender', 'address', 'profile_image']
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         confirm_password = validated_data.pop('confirm_password', None)
         if password != confirm_password:
             raise serializers.ValidationError([{"confirm_password": "password doesn't match"}])
-
-        favourites = validated_data.pop('favourites', None)
         client = Client(**validated_data)
         if password:
             client.set_password(password)
 
         client.save()
 
-        client.favourites.set(favourites)
         return client
 
     def update(self, instance, validated_data):

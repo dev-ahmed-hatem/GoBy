@@ -4,6 +4,7 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiPara
 import rest_framework.custom_pagination
 from authentication.client_auth import ClientJWTAuthentication
 from goby.utils import get_translated_field
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -125,6 +126,19 @@ class MenuCategoryViewSet(ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return MenuCategoryWriteSerializer
         return MenuCategoryReadSerializer
+
+    @action(methods=['GET'], detail=True)
+    def detailed(self, request, pk=None):
+        category: MenuCategory = MenuCategory.objects.filter(pk=pk).first()
+        if not category:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serialized_category = self.get_serializer(category)
+        restaurants = category.restaurants.all()
+        serialized_restaurants = RestaurantReadSerializer(restaurants, many=True, context={"request": request})
+        return Response({
+            **serialized_category.data,
+            "restaurants": serialized_restaurants.data
+        })
 
 
 class MenuItemViewSet(ModelViewSet):

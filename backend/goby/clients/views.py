@@ -61,8 +61,6 @@ class ClientViewSet(ModelViewSet):
             if client.barcode:
                 if os.path.isfile(client.barcode.path):
                     os.remove(client.barcode.path)
-            # client.generate_barcode()
-            # client.generate_qr_code()
             client.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -75,6 +73,26 @@ class ClientViewSet(ModelViewSet):
         else:
             client.delete_requested_photo()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Save the order and assign the current user as client
+        self.perform_create(serializer)
+
+        # Re-serialize using read serializer to return detailed info
+        read_serializer = ClientReadSerializer(serializer.instance, context={'request': request})
+
+        headers = self.get_success_headers(serializer.data)
+
+        token = AccessToken.for_user(serializer.instance)
+        token['client_id'] = str(serializer.instance.id)
+
+        return Response({
+            'client': read_serializer.data,
+            'access': str(token)
+        }, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class ClientLogin(APIView):
@@ -103,7 +121,8 @@ class ClientLogin(APIView):
             return Response({
                 "message": "Login successful.",
                 "data": {
-                    "access": str(token)
+                    "access": str(token),
+                    "client": ClientReadSerializer(client, context={"request": request}).data
                 },
             }, status=status.HTTP_200_OK)
 
@@ -112,6 +131,7 @@ class ClientLogin(APIView):
                 "message": "Client not found.",
                 "data": [],
             }, status=status.HTTP_404_NOT_FOUND)
+
 
 class GetClientData(APIView):
     authentication_classes = [ClientJWTAuthentication]
